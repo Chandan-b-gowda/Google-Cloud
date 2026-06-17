@@ -15,6 +15,7 @@ from chatbots import (
     LLMResponse,
     ask_claude,
     ask_gemini,
+    describe_image,
     generate_image,
     transcribe_audio,
 )
@@ -108,32 +109,66 @@ def _run_compare(prompt: str | None) -> None:
 
 
 def _run_image(prompt: str | None) -> None:
+    """Gemini generates the image; Claude analyzes it with vision.
+
+    Claude has no image-generation endpoint, so the honest comparison is
+    Gemini (generate) vs Claude (see/critique) — each model's real strength.
+    """
     if not prompt or not prompt.strip():
         st.warning("Describe an image first.")
         return
-    with st.spinner("Gemini is drawing..."):
-        result = generate_image(prompt)
 
-    _, mid, _ = st.columns([1, 2, 1])
-    with mid:
-        if result.ok:
-            st.image(result.image_bytes, caption=prompt, width="stretch")
-            if result.text:
-                st.markdown(result.text)
+    col_gemini, col_claude = st.columns(2)
+
+    with col_gemini:
+        st.subheader("🟦 Gemini — generates")
+        with st.spinner("Gemini is drawing..."):
+            gen = generate_image(prompt)
+        if gen.ok:
+            st.image(gen.image_bytes, caption=prompt, width="stretch")
             st.caption(
-                f"`{result.model}` · {result.latency_s}s · "
-                f"{result.input_tokens} in / {result.output_tokens} out tokens"
+                f"`{gen.model}` · {gen.latency_s}s · "
+                f"{gen.input_tokens} in / {gen.output_tokens} out tokens"
             )
         else:
-            st.error(result.error)
+            st.error(gen.error)
+
+    with col_claude:
+        st.subheader("🟧 Claude — analyzes")
+        if gen.ok and gen.image_bytes:
+            with st.spinner("Claude is looking..."):
+                analysis = describe_image(
+                    gen.image_bytes,
+                    gen.image_mime_type or "image/png",
+                    question=(
+                        f"This image was generated from the prompt: '{prompt}'. "
+                        "Describe what you actually see and how well it matches."
+                    ),
+                )
+            if analysis.ok:
+                st.markdown(analysis.text)
+                st.caption(
+                    f"`{analysis.model}` · {analysis.latency_s}s · "
+                    f"{analysis.input_tokens} in / {analysis.output_tokens} out tokens"
+                )
+            else:
+                st.error(analysis.error)
+            st.info(
+                "Claude can't *generate* images — it has no image output. "
+                "It can *see* them, so here it analyzes Gemini's result."
+            )
+        else:
+            st.warning("No image to analyze.")
 
 
 def _run_voice(audio) -> None:
-    with st.spinner("Gemini is listening..."):
-        result = transcribe_audio(audio.getvalue(), mime_type="audio/wav")
+    """Gemini transcribes; Claude cannot accept audio at all."""
+    col_gemini, col_claude = st.columns(2)
 
-    _, mid, _ = st.columns([1, 2, 1])
-    with mid:
+    with col_gemini:
+        st.subheader("🟦 Gemini — transcribes")
+        with st.spinner("Gemini is listening..."):
+            result = transcribe_audio(audio.getvalue(), mime_type="audio/wav")
         if result.ok:
             st.markdown(f"**Transcript:** {result.text}")
             st.caption(
@@ -142,3 +177,11 @@ def _run_voice(audio) -> None:
             )
         else:
             st.error(result.error)
+
+    with col_claude:
+        st.subheader("🟧 Claude — not supported")
+        st.info(
+            "Claude's API does not accept audio input — it supports text, "
+            "images, and PDFs, but not speech. Audio transcription is a "
+            "Gemini-only capability."
+        )

@@ -9,7 +9,7 @@ Public API:
 """
 
 from chatbots.base import LLMResponse
-from chatbots.claude_bot import ask_claude, chat_claude
+from chatbots.claude_bot import ask_claude, chat_claude, describe_image
 from chatbots.gemini_bot import (
     ask_gemini,
     chat_gemini,
@@ -23,6 +23,7 @@ __all__ = [
     "ask_gemini",
     "chat_claude",
     "chat_gemini",
+    "describe_image",
     "generate_image",
     "transcribe_audio",
 ]
