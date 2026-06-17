@@ -88,3 +88,110 @@ def chat_gemini(messages: list[dict]) -> LLMResponse:
 def ask_gemini(prompt: str) -> LLMResponse:
     """Single-turn convenience wrapper (no history)."""
     return chat_gemini([{"role": "user", "content": prompt}])
+
+
+def generate_image(prompt: str) -> LLMResponse:
+    """Generate an image from a text prompt using Gemini's image model.
+
+    Returns an LLMResponse with `image_bytes`/`image_mime_type` set on
+    success. `text` carries any accompanying caption text the model
+    returns alongside the image (Gemini image models can emit both).
+    """
+    try:
+        start = time.perf_counter()
+        response = _client().models.generate_content(
+            model=config.GEMINI_IMAGE_MODEL,
+            contents=[types.Content(role="user", parts=[types.Part(text=prompt)])],
+        )
+        elapsed = round(time.perf_counter() - start, 3)
+
+        image_bytes = None
+        image_mime_type = None
+        caption_text = ""
+        candidates = response.candidates or []
+        if candidates:
+            for part in candidates[0].content.parts or []:
+                if getattr(part, "inline_data", None) is not None:
+                    image_bytes = part.inline_data.data
+                    image_mime_type = part.inline_data.mime_type
+                elif getattr(part, "text", None):
+                    caption_text += part.text
+
+        if image_bytes is None:
+            return LLMResponse(
+                text=caption_text,
+                model=config.GEMINI_IMAGE_MODEL,
+                provider=PROVIDER,
+                latency_s=elapsed,
+                error="No image was returned by the model.",
+            )
+
+        usage = response.usage_metadata
+        return LLMResponse(
+            text=caption_text,
+            model=config.GEMINI_IMAGE_MODEL,
+            provider=PROVIDER,
+            latency_s=elapsed,
+            input_tokens=usage.prompt_token_count if usage else None,
+            output_tokens=usage.candidates_token_count if usage else None,
+            image_bytes=image_bytes,
+            image_mime_type=image_mime_type,
+        )
+
+    except Exception as e:  # noqa: BLE001 — surface any failure to the UI
+        return LLMResponse(
+            text="",
+            model=config.GEMINI_IMAGE_MODEL,
+            provider=PROVIDER,
+            error=f"{type(e).__name__}: {e}",
+        )
+
+
+def transcribe_audio(audio_bytes: bytes, mime_type: str = "audio/wav") -> LLMResponse:
+    """Transcribe spoken audio to text using a Gemini multimodal model.
+
+    `audio_bytes` is raw audio data (e.g. straight from
+    st.audio_input, which returns WAV bytes). Gemini accepts audio
+    as inline data alongside a text instruction.
+    """
+    try:
+        start = time.perf_counter()
+        response = _client().models.generate_content(
+            model=config.GEMINI_AUDIO_MODEL,
+            contents=[
+                types.Content(
+                    role="user",
+                    parts=[
+                        types.Part(text=(
+                            "Transcribe the following audio exactly as "
+                            "spoken. Return only the transcript text, with "
+                            "no commentary."
+                        )),
+                        types.Part(
+                            inline_data=types.Blob(
+                                data=audio_bytes, mime_type=mime_type
+                            )
+                        ),
+                    ],
+                )
+            ],
+        )
+        elapsed = round(time.perf_counter() - start, 3)
+
+        usage = response.usage_metadata
+        return LLMResponse(
+            text=response.text or "",
+            model=config.GEMINI_AUDIO_MODEL,
+            provider=PROVIDER,
+            latency_s=elapsed,
+            input_tokens=usage.prompt_token_count if usage else None,
+            output_tokens=usage.candidates_token_count if usage else None,
+        )
+
+    except Exception as e:  # noqa: BLE001 — surface any failure to the UI
+        return LLMResponse(
+            text="",
+            model=config.GEMINI_AUDIO_MODEL,
+            provider=PROVIDER,
+            error=f"{type(e).__name__}: {e}",
+        )

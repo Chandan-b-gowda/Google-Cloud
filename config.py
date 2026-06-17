@@ -24,6 +24,8 @@ CLAUDE_MODEL: str = os.getenv("CLAUDE_MODEL", "claude-opus-4-8")
 GCP_PROJECT: str = os.getenv("GCP_PROJECT", "")
 GCP_LOCATION: str = os.getenv("GCP_LOCATION", "global")
 GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-3.5-flash")
+GEMINI_IMAGE_MODEL: str = os.getenv("GEMINI_IMAGE_MODEL", "gemini-2.5-flash-image")
+GEMINI_AUDIO_MODEL: str = os.getenv("GEMINI_AUDIO_MODEL", "gemini-2.5-flash")
 
 # --- Generation settings ----------------------------------------------------
 MAX_TOKENS: int = int(os.getenv("MAX_TOKENS", "1024"))
