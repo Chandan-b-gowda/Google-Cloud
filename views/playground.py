@@ -1,11 +1,11 @@
-"""Playground page — one place to try everything, organized into tabs like a
-typical AI app:
+"""Playground page — a single centered prompt with mode toggles, in the style
+of modern AI apps. One input, three modes:
 
     Compare  — same prompt to both models, answers side by side
     Image    — Gemini text-to-image
     Voice    — Gemini speech-to-text
 
-Combines what used to be the separate Compare and Capabilities pages.
+Replaces the old separate Compare and Capabilities pages.
 """
 
 import streamlit as st
@@ -18,6 +18,10 @@ from chatbots import (
     generate_image,
     transcribe_audio,
 )
+
+COMPARE = "💬 Compare"
+IMAGE = "🖼️ Image"
+VOICE = "🎙️ Voice"
 
 
 def _render_response(title: str, result: LLMResponse) -> None:
@@ -34,93 +38,107 @@ def _render_response(title: str, result: LLMResponse) -> None:
         st.error(result.error)
 
 
-def _compare_tab() -> None:
+def render() -> None:
+    # --- Centered title ------------------------------------------------------
     st.markdown(
-        "Send the same prompt to both models and compare their answers, "
-        "latency, and token usage."
+        "<h1 style='text-align:center;margin-bottom:0;'>DoubleChat</h1>"
+        "<p style='text-align:center;color:#9aa0a6;margin-top:4px;'>"
+        "Compare two models, generate an image, or use your voice.</p>",
+        unsafe_allow_html=True,
     )
-    prompt = st.text_area(
-        "Your prompt:",
-        value="Explain prompt caching in large language models in 2-3 sentences.",
-        height=100,
-        key="compare_prompt",
-    )
-    if st.button("Ask Both", type="primary", key="compare_btn"):
-        if not prompt.strip():
-            st.warning("Please enter a prompt first.")
-            return
-        col_gemini, col_claude = st.columns(2)
-        with col_gemini:
-            with st.spinner("Gemini thinking..."):
-                gemini_result = ask_gemini(prompt)
-            _render_response("🟦 Gemini", gemini_result)
-        with col_claude:
-            with st.spinner("Claude thinking..."):
-                claude_result = ask_claude(prompt)
-            _render_response("🟧 Claude", claude_result)
+    st.write("")
+
+    # --- Centered input area -------------------------------------------------
+    prompt: str | None = None
+    audio = None
+    go = False
+    mode = COMPARE
+
+    _, center, _ = st.columns([1, 2, 1])
+    with center:
+        mode = st.segmented_control(
+            "Mode",
+            options=[COMPARE, IMAGE, VOICE],
+            default=COMPARE,
+            label_visibility="collapsed",
+        ) or COMPARE
+
+        if mode == IMAGE:
+            prompt = st.text_area(
+                "prompt", key="pg_image_prompt", label_visibility="collapsed",
+                placeholder="Describe an image to generate…", height=90,
+            )
+            go = st.button("Generate Image", type="primary", width="stretch")
+
+        elif mode == VOICE:
+            audio = st.audio_input("Record", key="pg_voice",
+                                   label_visibility="collapsed")
+            go = st.button("Transcribe", type="primary", width="stretch",
+                           disabled=audio is None)
+
+        else:  # COMPARE
+            prompt = st.text_area(
+                "prompt", key="pg_compare_prompt", label_visibility="collapsed",
+                placeholder="Ask anything — both models will answer…", height=90,
+            )
+            go = st.button("Ask Both", type="primary", width="stretch")
+
+    # --- Results (full width, below the input) -------------------------------
+    if go and mode == COMPARE:
+        _run_compare(prompt)
+    elif go and mode == IMAGE:
+        _run_image(prompt)
+    elif go and mode == VOICE and audio is not None:
+        _run_voice(audio)
 
 
-def _image_tab() -> None:
-    st.markdown("Generate an image from a text description using Gemini.")
-    st.caption(f"Model: `{config.GEMINI_IMAGE_MODEL}`")
+def _run_compare(prompt: str | None) -> None:
+    if not prompt or not prompt.strip():
+        st.warning("Please enter a prompt first.")
+        return
+    col_gemini, col_claude = st.columns(2)
+    with col_gemini:
+        with st.spinner("Gemini thinking..."):
+            result = ask_gemini(prompt)
+        _render_response("🟦 Gemini", result)
+    with col_claude:
+        with st.spinner("Claude thinking..."):
+            result = ask_claude(prompt)
+        _render_response("🟧 Claude", result)
 
-    prompt = st.text_area(
-        "Describe the image you want:",
-        value="A watercolor painting of a lighthouse at sunset.",
-        height=80,
-        key="image_prompt",
-    )
-    if st.button("Generate Image", type="primary", key="image_btn"):
-        if not prompt.strip():
-            st.warning("Please enter a prompt first.")
-            return
-        with st.spinner("Gemini is drawing..."):
-            result = generate_image(prompt)
 
+def _run_image(prompt: str | None) -> None:
+    if not prompt or not prompt.strip():
+        st.warning("Describe an image first.")
+        return
+    with st.spinner("Gemini is drawing..."):
+        result = generate_image(prompt)
+
+    _, mid, _ = st.columns([1, 2, 1])
+    with mid:
         if result.ok:
-            st.image(result.image_bytes, caption=prompt)
+            st.image(result.image_bytes, caption=prompt, width="stretch")
             if result.text:
                 st.markdown(result.text)
             st.caption(
-                f"Provider: {result.provider} · Model: `{result.model}` · "
-                f"Latency: **{result.latency_s}s** · "
-                f"Tokens: {result.input_tokens} in / {result.output_tokens} out"
+                f"`{result.model}` · {result.latency_s}s · "
+                f"{result.input_tokens} in / {result.output_tokens} out tokens"
             )
         else:
             st.error(result.error)
 
 
-def _voice_tab() -> None:
-    st.markdown("Record a short clip with your microphone, then transcribe it.")
-    st.caption(f"Model: `{config.GEMINI_AUDIO_MODEL}`")
+def _run_voice(audio) -> None:
+    with st.spinner("Gemini is listening..."):
+        result = transcribe_audio(audio.getvalue(), mime_type="audio/wav")
 
-    audio = st.audio_input("Record audio", key="voice_input")
-    if audio is not None:
-        st.audio(audio)
-        if st.button("Transcribe", type="primary", key="voice_btn"):
-            with st.spinner("Gemini is listening..."):
-                result = transcribe_audio(audio.getvalue(), mime_type="audio/wav")
-
-            if result.ok:
-                st.markdown(f"**Transcript:** {result.text}")
-                st.caption(
-                    f"Provider: {result.provider} · Model: `{result.model}` · "
-                    f"Latency: **{result.latency_s}s** · "
-                    f"Tokens: {result.input_tokens} in / {result.output_tokens} out"
-                )
-            else:
-                st.error(result.error)
-
-
-def render() -> None:
-    st.header("🧪 Playground")
-
-    tab_compare, tab_image, tab_voice = st.tabs(
-        ["💬 Compare", "🖼️ Image", "🎙️ Voice"]
-    )
-    with tab_compare:
-        _compare_tab()
-    with tab_image:
-        _image_tab()
-    with tab_voice:
-        _voice_tab()
+    _, mid, _ = st.columns([1, 2, 1])
+    with mid:
+        if result.ok:
+            st.markdown(f"**Transcript:** {result.text}")
+            st.caption(
+                f"`{result.model}` · {result.latency_s}s · "
+                f"{result.input_tokens} in / {result.output_tokens} out tokens"
+            )
+        else:
+            st.error(result.error)
