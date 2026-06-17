@@ -27,7 +27,7 @@ def render() -> None:
 
             load_col, del_col = st.columns(2)
             if load_col.button(
-                "↩️ Load into Chat", key=f"load_{conv.id}", use_container_width=True
+                "↩️ Load into Chat", key=f"load_{conv.id}", width='stretch'
             ):
                 # Restore the conversation into the Chat page's session state.
                 st.session_state.chat_messages = list(conv.messages)
@@ -41,7 +41,7 @@ def render() -> None:
                 st.rerun()
 
             if del_col.button(
-                "🗑️ Delete", key=f"del_{conv.id}", use_container_width=True
+                "🗑️ Delete", key=f"del_{conv.id}", width='stretch'
             ):
                 _, delete_ms = delete_conversation(conv.id)
                 st.toast(f"Deleted ({delete_ms} ms)")

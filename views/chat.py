@@ -32,7 +32,7 @@ def render() -> None:
         )
     with top_right:
         st.write("")  # vertical spacer to align the button
-        if st.button("🆕 New chat", use_container_width=True):
+        if st.button("🆕 New chat", width='stretch'):
             st.session_state.chat_messages = []
             st.session_state.conv_id = None
             st.rerun()

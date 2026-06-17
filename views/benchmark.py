@@ -66,7 +66,7 @@ def render() -> None:
         )
         .round(4)
     )
-    st.dataframe(summary, use_container_width=True)
+    st.dataframe(summary, width='stretch')
 
     # --- Detailed: one row per prompt per model -----------------------------
     st.subheader("Detailed results")
@@ -74,7 +74,7 @@ def render() -> None:
         ["category", "provider", "model", "latency_s",
          "input_tokens", "output_tokens", "cost_usd"]
     ]
-    st.dataframe(detail, use_container_width=True, hide_index=True)
+    st.dataframe(detail, width='stretch', hide_index=True)
 
     st.download_button(
         "⬇️ Download results as CSV",
@@ -108,6 +108,6 @@ def _render_dimension_checklist() -> None:
         )
         st.dataframe(
             pd.DataFrame(REPORT_DIMENSIONS, columns=["Dimension", "Covered by"]),
-            use_container_width=True,
+            width='stretch',
             hide_index=True,
         )
