@@ -17,7 +17,6 @@ from views import benchmark, capabilities, chat, compare, history
 # st.set_page_config must be the first Streamlit call, and run only once.
 st.set_page_config(
     page_title="DoubleChat — LLM Comparison Lab",
-    page_icon="🤖",
     layout="wide",
 )
 

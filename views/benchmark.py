@@ -27,7 +27,7 @@ REPORT_DIMENSIONS = [
 
 
 def render() -> None:
-    st.header("📊 Benchmark Suite")
+    st.header("Benchmark Suite")
     st.markdown(
         "Runs the same set of prompts through both models and builds a "
         "comparison table of speed, token usage, and estimated cost."
@@ -77,7 +77,7 @@ def render() -> None:
     st.dataframe(detail, width='stretch', hide_index=True)
 
     st.download_button(
-        "⬇️ Download results as CSV",
+        "Download results as CSV",
         data=df.to_csv(index=False),
         file_name="benchmark_results.csv",
         mime="text/csv",
@@ -101,7 +101,7 @@ def render() -> None:
 
 def _render_dimension_checklist() -> None:
     """Map the assignment's comparison dimensions to where each is covered."""
-    with st.expander("📋 Comparison dimensions — coverage map (for the report)"):
+    with st.expander("Comparison dimensions — coverage map (for the report)"):
         st.markdown(
             "Which of the assignment's comparison dimensions are measured by "
             "this app, and which need written research:"

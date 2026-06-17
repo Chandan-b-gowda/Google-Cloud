@@ -62,13 +62,13 @@ def _voice_tab() -> None:
 
 
 def render() -> None:
-    st.header("✨ Gemini Capabilities")
+    st.header("Gemini Capabilities")
     st.caption(
         "Multimodal features unique to Gemini — Claude has no image output "
         "or audio input."
     )
 
-    tab_image, tab_voice = st.tabs(["🖼️ Image Generation", "🎙️ Speech-to-Text"])
+    tab_image, tab_voice = st.tabs(["Image Generation", "Speech-to-Text"])
     with tab_image:
         _image_tab()
     with tab_voice:

@@ -49,8 +49,8 @@ def render() -> None:
     with col_gemini:
         with st.spinner("Gemini thinking..."):
             result = ask_gemini(prompt)
-        _render_response("🟦 Gemini", result)
+        _render_response("Gemini", result)
     with col_claude:
         with st.spinner("Claude thinking..."):
             result = ask_claude(prompt)
-        _render_response("🟧 Claude", result)
+        _render_response("Claude", result)

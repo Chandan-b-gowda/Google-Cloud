@@ -19,7 +19,7 @@ def _init_state() -> None:
 def render() -> None:
     _init_state()
 
-    st.header("💬 Multi-Turn Chat")
+    st.header("Multi-Turn Chat")
 
     top_left, top_right = st.columns([3, 1])
     with top_left:
@@ -32,7 +32,7 @@ def render() -> None:
         )
     with top_right:
         st.write("")  # vertical spacer to align the button
-        if st.button("🆕 New chat", width='stretch'):
+        if st.button("New chat", width='stretch'):
             st.session_state.chat_messages = []
             st.session_state.conv_id = None
             st.rerun()
@@ -86,4 +86,4 @@ def render() -> None:
     )
     conv_id, write_ms = save_conversation(conv)
     st.session_state.conv_id = conv_id
-    st.caption(f"💾 Saved to Cloud Firestore ({write_ms} ms)")
+    st.caption(f"Saved to Cloud Firestore ({write_ms} ms)")
