@@ -57,9 +57,6 @@ with st.sidebar:
         st.write(f"Claude · `{config.CLAUDE_MODEL}`")
         st.write(f"Project · `{config.GCP_PROJECT}`")
 
-    st.divider()
-    st.caption("SRH Heidelberg · Advanced CS · Final Project")
-
 # --- Render the selected page -----------------------------------------------
 if problems:
     st.title("DoubleChat")

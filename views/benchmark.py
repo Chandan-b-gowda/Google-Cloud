@@ -32,10 +32,6 @@ def render() -> None:
         "Runs the same set of prompts through both models and builds a "
         "comparison table of speed, token usage, and estimated cost."
     )
-    st.caption(
-        f"{len(PRESET_PROMPTS)} prompts × 2 models = "
-        f"{len(PRESET_PROMPTS) * 2} API calls per run (a few cents)."
-    )
 
     if st.button("Run Benchmark", type="primary"):
         bar = st.progress(0.0, text="Starting...")
