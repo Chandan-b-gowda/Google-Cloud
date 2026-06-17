@@ -6,13 +6,13 @@ SRH Advanced Computer Science — Final Exam Project (Topic K:
 comparison of Google Gemini, Anthropic Claude, and OpenAI ChatGPT).
 
 This file owns page configuration and navigation. Each page's content
-lives in its own module under views/ (compare, chat, history).
+lives in its own module under views/.
 """
 
 import streamlit as st
 
 import config
-from views import capabilities, chat, compare, history
+from views import benchmark, capabilities, chat, compare, history
 
 # st.set_page_config must be the first Streamlit call, and run only once.
 st.set_page_config(
@@ -25,48 +25,45 @@ PAGES = {
     "Compare": compare.render,
     "Capabilities": capabilities.render,
     "Chat": chat.render,
+    "Benchmark": benchmark.render,
     "History": history.render,
 }
 
 # --- Navigation state -------------------------------------------------------
-# Default landing page.
 st.session_state.setdefault("page", "Compare")
 
 # Honor a programmatic navigation request from another page (e.g. History's
-# "Load into Chat"). We apply it *before* the nav widget is created, because
+# "Load into Chat"). Applied before the nav widget is created, because
 # Streamlit forbids mutating a widget-bound key after the widget exists.
 if "_nav_to" in st.session_state:
     st.session_state["page"] = st.session_state.pop("_nav_to")
 
-# --- Sidebar: navigation + live configuration status ------------------------
+problems = config.validate()
+
+# --- Sidebar ----------------------------------------------------------------
 with st.sidebar:
-    st.title("🤖 DoubleChat")
-    st.caption("LLM Comparison Lab")
+    st.title("DoubleChat")
+    st.caption("Compare Gemini and Claude, side by side.")
 
-    st.radio("Navigate", options=list(PAGES.keys()), key="page")
+    st.radio("Menu", options=list(PAGES.keys()), key="page",
+             label_visibility="collapsed")
 
-    st.markdown("---")
-    st.subheader("⚙️ Configuration")
-    problems = config.validate()
-    if problems:
-        for problem in problems:
-            st.error(problem)
-    else:
-        st.success("Configuration OK")
+    with st.expander("Status & models", expanded=False):
+        if problems:
+            for problem in problems:
+                st.error(problem)
+        else:
+            st.success("Connected")
+        st.write(f"Gemini · `{config.GEMINI_MODEL}`")
+        st.write(f"Claude · `{config.CLAUDE_MODEL}`")
+        st.write(f"Project · `{config.GCP_PROJECT}`")
 
-    st.markdown("**Gemini** (Vertex AI)")
-    st.code(config.GEMINI_MODEL, language=None)
-    st.caption(f"project `{config.GCP_PROJECT}`")
+    st.divider()
+    st.caption("SRH Heidelberg · Advanced CS · Final Project")
 
-    st.markdown("**Claude** (Anthropic API)")
-    st.code(config.CLAUDE_MODEL, language=None)
-
-# --- Dispatch to the selected page ------------------------------------------
+# --- Render the selected page -----------------------------------------------
 if problems:
-    st.title("🤖 DoubleChat — LLM Comparison Lab")
-    st.error(
-        "Configuration is incomplete — fix the issues listed in the sidebar, "
-        "then reload."
-    )
+    st.title("DoubleChat")
+    st.error("Setup incomplete — check the sidebar status panel, then reload.")
 else:
     PAGES[st.session_state["page"]]()

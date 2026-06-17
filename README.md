@@ -40,17 +40,22 @@ final-exam-project/
 ├── config.py              # All settings; loads .env exactly once
 ├── check_setup.py         # Verifies LLMs + Firestore work (run after setup)
 ├── chatbots/              # LLM provider wrappers
-│   ├── __init__.py        # Exports: ask_*, chat_*, LLMResponse, CHAT_FUNCTIONS
+│   ├── __init__.py        # Exports: ask_*, chat_*, generate_image, transcribe_audio
 │   ├── base.py            # LLMResponse dataclass (shared response shape)
-│   ├── gemini_bot.py      # Gemini via Vertex AI (ADC auth)
+│   ├── gemini_bot.py      # Gemini via Vertex AI: text, image, audio (ADC auth)
 │   └── claude_bot.py      # Claude via Anthropic API (key auth)
 ├── storage/               # Persistence layer
 │   ├── __init__.py        # Exports the Firestore CRUD functions
 │   └── firestore_db.py    # Conversation save/load/list/delete + timings
+├── benchmark/             # Benchmark engine
+│   ├── __init__.py
+│   └── suite.py           # Preset prompts, cost estimation, run_benchmark()
 ├── views/                 # One render() function per UI page
 │   ├── __init__.py
 │   ├── compare.py         # Side-by-side single-prompt comparison
+│   ├── capabilities.py    # Gemini image generation + speech-to-text
 │   ├── chat.py            # Multi-turn chat, auto-saved to Firestore
+│   ├── benchmark.py       # Auto-generated comparison table (latency/tokens/cost)
 │   └── history.py         # Browse / reload / delete saved conversations
 ├── requirements.txt       # Python dependencies
 ├── .env.example           # Template for required secrets/settings
@@ -126,5 +131,7 @@ tokens tied to a Google identity — the more secure enterprise pattern.
 - [x] Phase 1 — Streamlit skeleton, environment, secrets handling
 - [x] Phase 2 — Side-by-side comparison with latency + token metrics
 - [x] Phase 3 — Multi-turn chat mode with history persisted to Firestore
-- [ ] Phase 4 — Benchmark suite + auto-generated comparison table
-- [ ] Phase 5 — Deploy to Cloud Run (public demo URL)
+- [x] Capabilities — Gemini image generation + speech-to-text
+- [x] Phase 4 — Benchmark suite + auto-generated comparison table
+- [ ] Phase 5 — Fine-tune Gemini on Vertex AI (customization dimension)
+- [ ] Phase 6 — Deploy to Cloud Run (public demo URL)
