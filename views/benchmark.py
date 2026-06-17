@@ -22,7 +22,7 @@ REPORT_DIMENSIONS = [
     ("Language support", "See the Multilingual row below"),
     ("Data privacy & security", "First-hand: API key vs ADC/OAuth"),
     ("Community support", "Research: docs, forums, ecosystem size"),
-    ("Use-case versatility", "First-hand: text, image, audio (Capabilities page)"),
+    ("Use-case versatility", "First-hand: text, image, audio (Playground page)"),
 ]
 
 

@@ -12,7 +12,7 @@ lives in its own module under views/.
 import streamlit as st
 
 import config
-from views import benchmark, capabilities, chat, compare, history
+from views import benchmark, chat, history, playground
 
 # st.set_page_config must be the first Streamlit call, and run only once.
 st.set_page_config(
@@ -22,15 +22,14 @@ st.set_page_config(
 )
 
 PAGES = {
-    "Compare": compare.render,
-    "Capabilities": capabilities.render,
+    "Playground": playground.render,
     "Chat": chat.render,
     "Benchmark": benchmark.render,
     "History": history.render,
 }
 
 # --- Navigation state -------------------------------------------------------
-st.session_state.setdefault("page", "Compare")
+st.session_state.setdefault("page", "Playground")
 
 # Honor a programmatic navigation request from another page (e.g. History's
 # "Load into Chat"). Applied before the nav widget is created, because

@@ -52,8 +52,7 @@ final-exam-project/
 │   └── suite.py           # Preset prompts, cost estimation, run_benchmark()
 ├── views/                 # One render() function per UI page
 │   ├── __init__.py
-│   ├── compare.py         # Side-by-side single-prompt comparison
-│   ├── capabilities.py    # Gemini image generation + speech-to-text
+│   ├── playground.py      # Tabs: Compare (text) · Image · Voice
 │   ├── chat.py            # Multi-turn chat, auto-saved to Firestore
 │   ├── benchmark.py       # Auto-generated comparison table (latency/tokens/cost)
 │   └── history.py         # Browse / reload / delete saved conversations
