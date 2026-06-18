@@ -89,6 +89,48 @@ def ask_gemini(prompt: str) -> LLMResponse:
     """Single-turn convenience wrapper (no history)."""
     return chat_gemini([{"role": "user", "content": prompt}])
 
+def generate_code(prompt: str, language: str = "") -> LLMResponse:
+    """Generate code from a natural-language task description.
+
+    `language` is optional free text (e.g. "Python", "JavaScript").
+    If left blank, the model infers the most sensible language from
+    the prompt itself. Returns a normal text LLMResponse — the UI is
+    responsible for rendering it as a code block.
+    """
+    language_hint = f" in {language}" if language.strip() else ""
+    instruction = (
+        f"Write code{language_hint} for the following task:\n\n"
+        f"{prompt}\n\n"
+        "Return the code in a single fenced code block with the correct "
+        "language tag, followed by a brief explanation (2-4 sentences) of "
+        "how it works. Do not omit the explanation."
+    )
+
+    try:
+        start = time.perf_counter()
+        response = _client().models.generate_content(
+            model=config.GEMINI_MODEL,
+            contents=[types.Content(role="user", parts=[types.Part(text=instruction)])],
+        )
+        elapsed = round(time.perf_counter() - start, 3)
+
+        usage = response.usage_metadata
+        return LLMResponse(
+            text=response.text or "",
+            model=config.GEMINI_MODEL,
+            provider=PROVIDER,
+            latency_s=elapsed,
+            input_tokens=usage.prompt_token_count if usage else None,
+            output_tokens=usage.candidates_token_count if usage else None,
+        )
+
+    except Exception as e:  # noqa: BLE001 — surface any failure to the UI
+        return LLMResponse(
+            text="",
+            model=config.GEMINI_MODEL,
+            provider=PROVIDER,
+            error=f"{type(e).__name__}: {e}",
+        )
 
 def generate_image(prompt: str) -> LLMResponse:
     """Generate an image from a text prompt using Gemini's image model.

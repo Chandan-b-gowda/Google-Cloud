@@ -8,8 +8,7 @@ input, so this page focuses on what Gemini can do beyond plain text.
 import streamlit as st
 
 import config
-from chatbots import generate_image, transcribe_audio
-
+from chatbots import generate_code, generate_image, transcribe_audio
 
 def _image_tab() -> None:
     st.caption(f"Model: `{config.GEMINI_IMAGE_MODEL}`")
@@ -60,6 +59,37 @@ def _voice_tab() -> None:
             else:
                 st.error(result.error)
 
+def _code_tab() -> None:
+    st.caption(f"Model: `{config.GEMINI_MODEL}`")
+
+    task = st.text_area(
+        "Describe what the code should do:",
+        value="Write a function that checks if a string is a palindrome.",
+        height=90,
+        key="cap_code_task",
+    )
+    language = st.text_input(
+        "Language (optional — leave blank to let Gemini choose):",
+        value="Python",
+        key="cap_code_lang",
+    )
+
+    if st.button("Generate Code", type="primary", key="cap_code_btn"):
+        if not task.strip():
+            st.warning("Please describe the task first.")
+            return
+        with st.spinner("Gemini is coding..."):
+            result = generate_code(task, language=language)
+
+        if result.ok:
+            st.markdown(result.text)
+            st.caption(
+                f"`{result.model}` · {result.latency_s}s · "
+                f"{result.input_tokens} in / {result.output_tokens} out tokens"
+            )
+        else:
+            st.error(result.error)
+
 
 def render() -> None:
     st.header("Gemini Capabilities")
@@ -68,8 +98,12 @@ def render() -> None:
         "or audio input."
     )
 
-    tab_image, tab_voice = st.tabs(["Image Generation", "Speech-to-Text"])
+    tab_image, tab_voice, tab_code = st.tabs(
+        ["Image Generation", "Speech-to-Text", "Code Generation"]
+    )
     with tab_image:
         _image_tab()
     with tab_voice:
         _voice_tab()
+    with tab_code:
+        _code_tab()
