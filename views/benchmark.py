@@ -97,11 +97,7 @@ def render() -> None:
 
 def _render_dimension_checklist() -> None:
     """Map the assignment's comparison dimensions to where each is covered."""
-    with st.expander("Comparison dimensions — coverage map (for the report)"):
-        st.markdown(
-            "Which of the assignment's comparison dimensions are measured by "
-            "this app, and which need written research:"
-        )
+    with st.expander("Comparison dimensions"):
         st.dataframe(
             pd.DataFrame(REPORT_DIMENSIONS, columns=["Dimension", "Covered by"]),
             width='stretch',
