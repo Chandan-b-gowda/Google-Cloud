@@ -1,0 +1,6 @@
+# Extra dependencies for the fine-tuning data preparation scripts.
+# These are NOT needed to run the Streamlit app — only to (re)build and
+# upload the training data.  Install with:
+#     pip install -r finetuning/requirements.txt
+datasets>=2.0.0
+google-cloud-storage>=2.10.0

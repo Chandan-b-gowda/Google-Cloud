@@ -12,7 +12,7 @@ lives in its own module under views/.
 import streamlit as st
 
 import config
-from views import benchmark, capabilities, chat, compare, history
+from views import benchmark, capabilities, chat, compare, finetune, history
 
 # st.set_page_config must be the first Streamlit call, and run only once.
 st.set_page_config(
@@ -25,6 +25,7 @@ PAGES = {
     "Capabilities": capabilities.render,
     "Chat": chat.render,
     "Benchmark": benchmark.render,
+    "Fine-tuned": finetune.render,
     "History": history.render,
 }
 

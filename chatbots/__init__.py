@@ -14,6 +14,8 @@ from chatbots.gemini_bot import (
     ask_gemini,
     chat_gemini,
     generate_image,
+    headline_base,
+    headline_tuned,
     transcribe_audio,
 )
 
@@ -25,6 +27,8 @@ __all__ = [
     "chat_gemini",
     "describe_image",
     "generate_image",
+    "headline_base",
+    "headline_tuned",
     "transcribe_audio",
 ]
 

@@ -195,3 +195,63 @@ def transcribe_audio(audio_bytes: bytes, mime_type: str = "audio/wav") -> LLMRes
             provider=PROVIDER,
             error=f"{type(e).__name__}: {e}",
         )
+
+
+@lru_cache(maxsize=1)
+def _tuned_client() -> genai.Client:
+    """Client for the fine-tuned model, which is served from its tuning region
+    (us-central1) — not the 'global' endpoint the base models use.
+    """
+    return genai.Client(
+        vertexai=True,
+        project=config.GCP_PROJECT,
+        location=config.TUNED_GEMINI_LOCATION,
+    )
+
+
+def _headline(description: str, model: str, client: genai.Client) -> LLMResponse:
+    """Generate a headline for one description with the given model + client.
+
+    Both the base and tuned calls share this so the only difference is the
+    model — making the comparison fair.
+    """
+    try:
+        start = time.perf_counter()
+        response = client.models.generate_content(
+            model=model,
+            contents=[types.Content(role="user", parts=[types.Part(text=description)])],
+            config=types.GenerateContentConfig(
+                system_instruction=config.HEADLINE_SYSTEM_INSTRUCTION,
+            ),
+        )
+        elapsed = round(time.perf_counter() - start, 3)
+        usage = response.usage_metadata
+        return LLMResponse(
+            text=(response.text or "").strip(),
+            model=model,
+            provider=PROVIDER,
+            latency_s=elapsed,
+            input_tokens=usage.prompt_token_count if usage else None,
+            output_tokens=usage.candidates_token_count if usage else None,
+        )
+    except Exception as e:  # noqa: BLE001
+        return LLMResponse(
+            text="", model=model, provider=PROVIDER,
+            error=f"{type(e).__name__}: {e}",
+        )
+
+
+def headline_base(description: str) -> LLMResponse:
+    """Headline from the un-tuned base model (the 'before' in the comparison)."""
+    return _headline(description, config.HEADLINE_BASE_MODEL, _client())
+
+
+def headline_tuned(description: str) -> LLMResponse:
+    """Headline from the fine-tuned model (the 'after' in the comparison)."""
+    if not config.TUNED_GEMINI_MODEL:
+        return LLMResponse(
+            text="", model="(not set)", provider=PROVIDER,
+            error="No tuned model yet. Finish the tuning job, then set "
+                  "TUNED_GEMINI_MODEL in .env to the tuned model's resource name.",
+        )
+    return _headline(description, config.TUNED_GEMINI_MODEL, _tuned_client())

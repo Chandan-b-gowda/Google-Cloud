@@ -34,6 +34,22 @@ MAX_TOKENS: int = int(os.getenv("MAX_TOKENS", "1024"))
 # Uses the same GCP_PROJECT and ADC credentials as Vertex AI.
 FIRESTORE_COLLECTION: str = os.getenv("FIRESTORE_COLLECTION", "conversations")
 
+# --- Fine-tuned headline model ----------------------------------------------
+# The base model the tuning job is derived from (compared against the tuned one).
+HEADLINE_BASE_MODEL: str = os.getenv("HEADLINE_BASE_MODEL", "gemini-2.5-flash")
+# Paste the tuned model's resource name here AFTER the tuning job completes,
+# e.g. projects/<num>/locations/us-central1/models/<id>. Empty = not tuned yet.
+TUNED_GEMINI_MODEL: str = os.getenv("TUNED_GEMINI_MODEL", "")
+# Tuned models are served from the region they were trained in.
+TUNED_GEMINI_LOCATION: str = os.getenv("TUNED_GEMINI_LOCATION", "us-central1")
+# The same instruction used during training — both models get it, so the only
+# difference in the comparison is the fine-tuning itself.
+HEADLINE_SYSTEM_INSTRUCTION: str = (
+    "You are a news headline writer. Given a short description of a news "
+    "story, write a single concise, catchy headline in news style. "
+    "Return only the headline, with no extra text."
+)
+
 
 def validate() -> list[str]:
     """Return human-readable configuration problems. Empty list = all good."""

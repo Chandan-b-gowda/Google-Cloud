@@ -11,6 +11,9 @@ __pycache__/
 *.pyo
 .pytest_cache/
 
+# Generated fine-tuning data (regenerate with finetuning/prepare_dataset.py)
+finetuning/data/
+
 # IDE
 .vscode/
 .idea/
