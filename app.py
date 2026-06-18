@@ -12,8 +12,7 @@ lives in its own module under views/.
 import streamlit as st
 
 import config
-from views import benchmark, capabilities, chat, compare, history
-
+from views import benchmark, capabilities, chat, code_gen, compare, history
 # st.set_page_config must be the first Streamlit call, and run only once.
 st.set_page_config(
     page_title="DoubleChat — LLM Comparison Lab",
@@ -23,6 +22,7 @@ st.set_page_config(
 PAGES = {
     "Compare": compare.render,
     "Capabilities": capabilities.render,
+    "Code Generation": code_gen.render,
     "Chat": chat.render,
     "Benchmark": benchmark.render,
     "History": history.render,
