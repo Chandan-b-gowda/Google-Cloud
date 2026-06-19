@@ -98,7 +98,6 @@ def render() -> None:
 def _render_dimension_checklist() -> None:
     """Map the assignment's comparison dimensions to where each is covered."""
     with st.expander("Comparison dimensions"):
-        
         st.dataframe(
             pd.DataFrame(REPORT_DIMENSIONS, columns=["Dimension", "Covered by"]),
             width='stretch',
