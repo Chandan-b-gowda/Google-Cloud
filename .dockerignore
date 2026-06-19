@@ -1,0 +1,18 @@
+# Keep the build context (and image) small and secret-free.
+venv/
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# Secrets — never bake these into the image (passed via Cloud Run env vars).
+.env
+env.yaml
+
+# Not needed at runtime.
+.git/
+.gitignore
+finetuning/data/
+*.md
+finetuning/requirements.txt
